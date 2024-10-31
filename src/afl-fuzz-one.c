@@ -346,7 +346,7 @@ u8 fuzz_one_original(afl_state_t *afl) {
   if (afl->queue_cur->depth > 1) return 1;
 
 #else
-  if (afl->k_mode == 0 || (afl->k_mode && get_cur_time() - afl->start_time > 600000)){
+  if (afl->k_mode == 0 || (afl->k_mode && afl->normal_mode == 1)){
 
     if (unlikely(afl->custom_mutators_count)) {
 

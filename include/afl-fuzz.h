@@ -888,6 +888,8 @@ typedef struct afl_state {
 
   u32 last_local_edge_num;
 
+  u8 try_all_init_seeds;
+
 } afl_state_t;
 
 struct custom_mutator {

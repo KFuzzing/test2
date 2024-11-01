@@ -2874,7 +2874,8 @@ int main(int argc, char **argv_orig, char **envp) {
       }
 
       if (afl->k_mode){
-        if (afl->normal_mode == 0){
+        
+        if (!((get_cur_time() - afl->start_time > 600000 && afl->try_all_init_seeds == 1) || afl->normal_mode == 1)){
           // we should first iterate all initial seeds
           u8 find_un_try_seed = 0;
           for (u32 idx = 0; idx < afl->queued_items; idx++) {
@@ -2890,7 +2891,43 @@ int main(int argc, char **argv_orig, char **envp) {
           }
 
           if(find_un_try_seed == 0){ //all initial seeds have been tried
-            afl->normal_mode = 1;
+            afl->try_all_init_seeds = 1;
+
+            // Step I: randomly select a seed that performs havoc mutation successfully 
+            int candidates[100000];
+            int candidates_num = 0;
+            for (u32 idx = 0; idx < afl->queued_items; idx++) {
+              struct queue_entry *q = afl->queue_buf[idx];
+              if (q->ancestor_seed == q && q->first_havoc == 0){
+                candidates[candidates_num] = idx;
+                candidates_num += 1;
+              }
+            }
+            if (candidates_num == 0){
+              afl->normal_mode = 1;
+            }else{
+              int index = rand() % candidates_num;
+              afl->queue_cur = afl->queue_buf[candidates[index]];
+              afl->current_entry = candidates[index];
+            }
+            // Step II: we need to filter out the seeds from the target initial seeds
+            candidates_num = 0;
+            for (u32 idx = 0; idx < afl->queued_items; idx++) {
+              struct queue_entry *q = afl->queue_buf[idx];
+              if (q->ancestor_seed == afl->queue_cur){
+                candidates[candidates_num] = idx;
+                candidates_num += 1;
+              }
+            }
+            if (candidates_num == 0){ //randomly select a seed
+              int index = rand() % afl->queued_items;
+              afl->queue_cur = afl->queue_buf[index];
+              afl->current_entry = index;
+            }else{
+              int index = rand() % candidates_num;
+              afl->queue_cur = afl->queue_buf[candidates[index]];
+              afl->current_entry = candidates[index];
+            }
           }
 
           

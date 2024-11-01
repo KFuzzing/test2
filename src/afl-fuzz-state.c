@@ -156,6 +156,7 @@ void afl_state_init(afl_state_t *afl, uint32_t map_size) {
 
   afl->epoch_cnt = 0;
   afl->target_q_entry = 0;
+  afl->try_all_init_seeds = 0;
 }
 
 /*This sets up the environment variables for afl-fuzz into the afl_state
